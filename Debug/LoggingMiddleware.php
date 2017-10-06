@@ -34,23 +34,23 @@ class LoggingMiddleware implements MessageBusMiddlewareInterface
      */
     public function handle($message, callable $next)
     {
-        $this->logger->debug('Starting processing message', array(
-            'message' => $message,
+        $this->logger->debug('Starting processing message "{message}"', array(
+            'message' => get_class($message),
         ));
 
         try {
             $result = $next($message);
         } catch (\Throwable $e) {
-            $this->logger->warning('Something went wrong while processing message', array(
-                'message' => $message,
+            $this->logger->warning('Something went wrong while processing message "{message}', array(
+                'message' => get_class($message),
                 'exception' => $e,
             ));
 
             throw $e;
         }
 
-        $this->logger->debug('Finished processing message', array(
-            'message' => $message,
+        $this->logger->debug('Finished processing message "{message}"', array(
+            'message' => get_class($message),
         ));
 
         return $result;
