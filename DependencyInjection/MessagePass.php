@@ -29,12 +29,8 @@ class MessagePass implements CompilerPassInterface
     private $messageBusService;
     private $middlewareTag;
 
-    public function __construct(
-        string $messageBusService = 'message_bus',
-        string $middlewareTag = 'message_middleware',
-        string $messageHandlerResolverService = 'message.handler_resolver',
-        string $handlerTag = 'message_handler'
-    ) {
+    public function __construct(string $messageBusService = 'message_bus', string $middlewareTag = 'message_middleware', string $messageHandlerResolverService = 'message.handler_resolver', string $handlerTag = 'message_handler')
+    {
         $this->messageHandlerResolverService = $messageHandlerResolverService;
         $this->handlerTag = $handlerTag;
         $this->messageBusService = $messageBusService;
@@ -57,7 +53,7 @@ class MessagePass implements CompilerPassInterface
         $handlerResolver->replaceArgument(0, $this->findHandlers($container));
     }
 
-    private function findHandlers(ContainerBuilder $container)
+    private function findHandlers(ContainerBuilder $container): array
     {
         $handlersByMessage = array();
 

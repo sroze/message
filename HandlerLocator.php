@@ -12,12 +12,12 @@
 namespace Symfony\Component\Message;
 
 use Symfony\Component\Message\Exception\NoHandlerForMessageException;
-use Symfony\Component\Message\Handler\CollectionOfMessageHandlers;
+use Symfony\Component\Message\Handler\MessageHandlerCollection;
 
 /**
  * @author Samuel Roze <samuel.roze@gmail.com>
  */
-class MessageHandlerResolver implements MessageHandlerResolverInterface
+class HandlerLocator implements HandlerLocatorInterface
 {
     /**
      * Maps a message (its class) to a given handler.
@@ -41,7 +41,7 @@ class MessageHandlerResolver implements MessageHandlerResolverInterface
 
         $handler = $this->messageToHandlerMapping[$messageKey];
         if ($this->isCollectionOfHandlers($handler)) {
-            $handler = new CollectionOfMessageHandlers($handler);
+            $handler = new MessageHandlerCollection($handler);
         }
 
         return $handler;

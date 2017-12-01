@@ -9,17 +9,17 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Component\Message;
+namespace Symfony\Component\Message\Transport;
 
 /**
  * @author Samuel Roze <samuel.roze@gmail.com>
  */
-interface MessageProducerInterface
+interface SenderInterface
 {
     /**
-     * Produce the given message.
+     * Send the given message.
      *
      * @param object $message
      */
-    public function produce($message);
+    public function send($message);
 }

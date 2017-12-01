@@ -9,18 +9,12 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Component\Message;
+namespace Symfony\Component\Message\Transport;
 
 /**
  * @author Samuel Roze <samuel.roze@gmail.com>
  */
-interface MessageBusMiddlewareInterface
+interface ReceiverInterface
 {
-    /**
-     * @param object   $message
-     * @param callable $next
-     *
-     * @return mixed
-     */
-    public function handle($message, callable $next);
+    public function receive(): \Generator;
 }

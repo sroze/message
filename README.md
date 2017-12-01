@@ -18,17 +18,36 @@ Documentation
 
 **Note:** this documentation is to be moved to symfony.com when merging the Component.
 
+### Concepts
+
+![Component overview](Resources/doc/component-overview.png)
+
+1. **Sender**
+   Responsible for serializing and sending the message to _something_. This something can be a message broker or a 3rd 
+   party API for example.
+
+2. **Receiver**
+   Responsible for deserializing and forwarding the messages to handler(s). This can be a message queue puller or an API
+   endpoint for example.
+   
+3. **Handler**
+   Given a received message, contains the user business logic related to the message. In practice, that is just a PHP
+   callable.
+   
+
 ### Bus
 
-The bus is used to dispatch and handle messages. MessageBus' behaviour is in its ordered middleware stack. When using
+The bus is used to dispatch messages. MessageBus' behaviour is in its ordered middleware stack. When using
 the message bus with Symfony's FrameworkBundle, the following middlewares are configured for you:
 
-1. `LogMessagesMiddleware` (log the processing of your messages)
-2. `SendMessageOnProducersBasedOnRoutingMiddleware` (enable asynchronous processing)
-3. `CallMessageHandlerMiddleware` (call the registered handle)
+1. `LoggingMiddleware` (log the processing of your messages)
+2. `SendMessageMiddleware` (enable asynchronous processing)
+3. `HandleMessageMiddleware` (call the registered handle)
 
 ```php
-$result = $this->get('message_bus')->dispatch(new MyMessage(/* ... */));
+use App\Message\MyMessage;
+
+$result = $this->get('message_bus')->handle(new MyMessage(/* ... */));
 ```
 
 ### Handlers
@@ -38,6 +57,10 @@ Once dispatched to the bus, messages will be handled by a "message handler". A m
 result.
 
 ```php
+namespace App\MessageHandler;
+
+use App\Message\MyMessage;
+
 class MyMessageHandler
 {
     public function __invoke(MyMessage $message)
@@ -49,7 +72,7 @@ class MyMessageHandler
 
 ```xml
 <service id="App\Handler\MyMessageHandler">
-    <tag name="message_handler" />
+    <tag name="message_handler" handles="App\Message\MyMessage" />
 </service>
 ```
 
@@ -69,7 +92,7 @@ following adapters:
 
 #### Routing
 
-When doing asynchronous processing, the key is to route the message to the right producer. As the routing is
+When doing asynchronous processing, the key is to route the message to the right sender. As the routing is
 application-specific and not message-specific, the configuration can be made within the `framework.yaml` 
 configuration file as well:
 
@@ -77,7 +100,7 @@ configuration file as well:
 framework:
     message:
         routing:
-            'My\Message\MessageAboutDoingOperationalWork': my_operations_producer
+            'My\Message\MessageAboutDoingOperationalWork': my_operations_queue_sender
 ```
 
 Such configuration would only route the `MessageAboutDoingOperationalWork` message to be asynchronous, the rest of the
@@ -88,41 +111,39 @@ If you want to do route all the messages to a queue by default, you can use such
 framework:
     message:
         routing:
-            'My\Message\MessageAboutDoingOperationalWork': my_operations_producer
-            '*': my_default_producer
+            'My\Message\MessageAboutDoingOperationalWork': my_operations_queue_sender
+            '*': my_default_sender
 ```
 
-Note that you can also route a message to multiple producers at the same time:
+Note that you can also route a message to multiple senders at the same time:
 ```yaml
 framework:
     message:
         routing:
-            'My\Message\AnImportantMessage': [my_default_producer, my_audit_producer]
+            'My\Message\AnImportantMessage': [my_default_sender, my_audit_semder]
 ```
 
-#### Same bus consumer and producer
+#### Same bus received and sender
 
-To allow us to consume and produce messages on the same bus and prevent a loop, the message bus is equipped with the
-`SendMessageOnProducersBasedOnRoutingMiddleware` middleware and a `WrappedIntoConsumedMessageConsumer` consumer. 
-The consumer will wraps the received messages into `ConsumedMessage` objects and the middleware will not forward
-these messages to the producers.
+To allow us to receive and send messages on the same bus and prevent a loop, the message bus is equipped with the
+`WrappedIntoReceivedMessage` received. It will wraps the received messages into `ReceivedMessage` objects and the 
+`SendMessageMiddleware` middleware will know it should not send these messages.
 
+### Your own sender
 
-### Your own producer
-
-Using the `MessageProducerInterface`, you can easily create your own message producer. Let's say you already have an
-`ImportantAction` message going through the message bus and handled by a handler. Now, you also want to produce this
+Using the `SenderInterface`, you can easily create your own message sender. Let's say you already have an
+`ImportantAction` message going through the message bus and handled by a handler. Now, you also want to send this
 message as an email.
 
-1. Create your producer
+1. Create your sender
 
 ```php
-namespace App\MessageProducer;
+namespace App\MessageSender;
 
-use Symfony\Component\Message\MessageProducerInterface;
+use Symfony\Component\Message\SenderInterface;
 use App\Message\ImportantAction;
 
-class ImportantActionToEmailProducer implements MessageProducerInterface
+class ImportantActionToEmailSender implements SenderInterface
 {
     private $toEmail;
     private $mailer;
@@ -133,7 +154,7 @@ class ImportantActionToEmailProducer implements MessageProducerInterface
         $this->toEmail = $toEmail;
     }
     
-    public function produce($message)
+    public function send($message)
     {
         if (!$message instanceof ImportantAction) {
             throw new \InvalidArgumentException(sprintf('Producer only supports "%s" messages', ImportantAction::class));
@@ -151,47 +172,47 @@ class ImportantActionToEmailProducer implements MessageProducerInterface
 }
 ```
 
-2. Register your producer service
+2. Register your sender service
 
 ```xml
-<service id="app.message_producer.important_action_to_email" class="App\MessageProducer\ImportantActionToEmailProducer">
+<service id="App\MessageSender\ImportantActionToEmailSender">
     <argument type="service" id="mailer" />
     <argument>%to_email%</argument>
 </service>
 ```
 
-3. Route your important message to the producer
+3. Route your important message to the sender
 
 ```yaml
 framework:
     message:
         routing:
-            'App\Message\ImportantAction': [app.message_producer.important_action_to_email, ~]
+            'App\Message\ImportantAction': [App\MessageSender\ImportantActionToEmailSender, ~]
 ```
 
-**Note:** this example shows you how you can at the same time produce your message and directly handle it using a `null`
-(`~`) producer.
+**Note:** this example shows you how you can at the same time send your message and directly handle it using a `null`
+(`~`) sender.
 
-### Your own consumer
+### Your own received
 
-A consumer is responsible of reading messages from a source and dispatching them to the application. 
+A consumer is responsible of receiving messages from a source and dispatching them to the application. 
 
 Let's say you already proceed some "orders" on your application using a `NewOrder` message. Now you want to integrate with
 a 3rd party or a legacy application but you can't use an API and need to use a shared CSV file with new orders.
 
 You will read this CSV file and dispatch a `NewOrder` message. All you need to do is your custom CSV consumer and Symfony will do the rest.
 
-1. Create your consumer
+1. Create your receiver
 
 ```php
-namespace App\MessageConsumer;
+namespace App\MessageReceiver;
 
-use Symfony\Component\Message\MessageConsumerInterface;
+use Symfony\Component\Message\ReceiverInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 
 use App\Message\NewOrder;
 
-class NewOrdersFromCsvFile implements MessageConsumerInterface
+class NewOrdersFromCsvFile implements ReceiverInterface
 {
     private $serializer;
     private $filePath;
@@ -202,7 +223,7 @@ class NewOrdersFromCsvFile implements MessageConsumerInterface
         $this->filePath = $filePath;
     }
     
-    public function consume() : \Generator
+    public function receive() : \Generator
     {
         $ordersFromCsv = $this->serializer->deserialize(file_get_contents($this->filePath), 'csv'); 
         
@@ -216,7 +237,7 @@ class NewOrdersFromCsvFile implements MessageConsumerInterface
 2. Register your consumer service
 
 ```xml
-<service id="app.message_consumer.new_orders_from_csv_file" class="App\MessageConsumer\NewOrdersFromCsvFile">
+<service class="App\MessageReceived\NewOrdersFromCsvFile">
     <argument type="service" id="serializer" />
     <argument>%new_orders_csv_file_path%</argument>
 </service>
@@ -225,5 +246,5 @@ class NewOrdersFromCsvFile implements MessageConsumerInterface
 3. Use your consumer
 
 ```bash
-$ bin/console message:consume app.message_consumer.new_orders_from_csv_file
+$ bin/console message:consume App\MessageReceived\NewOrdersFromCsvFile
 ```

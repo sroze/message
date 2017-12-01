@@ -18,12 +18,12 @@ namespace Symfony\Component\Message;
 class MessageBus implements MessageBusInterface
 {
     /**
-     * @var MessageBusMiddlewareInterface[]
+     * @var MiddlewareInterface[]
      */
     private $middlewares;
 
     /**
-     * @param MessageBusMiddlewareInterface[] $middlewares
+     * @param MiddlewareInterface[] $middlewares
      */
     public function __construct(array $middlewares = array())
     {
@@ -33,7 +33,7 @@ class MessageBus implements MessageBusInterface
     /**
      * {@inheritdoc}
      */
-    public function handle($message)
+    public function dispatch($message)
     {
         call_user_func($this->callableForNextMiddleware(0), $message);
     }

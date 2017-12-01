@@ -9,12 +9,12 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Component\Message\Transport;
+namespace Symfony\Component\Message\Transport\Serialization;
 
 /**
  * @author Samuel Roze <samuel.roze@gmail.com>
  */
-interface MessageDecoderInterface
+interface DecoderInterface
 {
     /**
      * Decode the message from an encoded-form. The `$encodedMessage` parameter is a key-value array that

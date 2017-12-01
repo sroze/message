@@ -9,23 +9,21 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Component\Message;
+namespace Symfony\Component\Message\Asynchronous\Routing;
 
-use Symfony\Component\Message\Exception\NoHandlerForMessageException;
+use Symfony\Component\Message\Transport\SenderInterface;
 
 /**
  * @author Samuel Roze <samuel.roze@gmail.com>
  */
-interface MessageHandlerResolverInterface
+interface SenderLocatorInterface
 {
     /**
-     * Return the handler for the given message.
+     * Get the producer (if applicable) for the given message object.
      *
      * @param object $message
      *
-     * @throws NoHandlerForMessageException
-     *
-     * @return callable
+     * @return SenderInterface[]
      */
-    public function resolve($message): callable;
+    public function getSendersForMessage($message): array;
 }

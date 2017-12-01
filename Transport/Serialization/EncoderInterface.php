@@ -9,12 +9,12 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Component\Message\Transport;
+namespace Symfony\Component\Message\Transport\Serialization;
 
 /**
  * @author Samuel Roze <samuel.roze@gmail.com>
  */
-interface MessageEncoderInterface
+interface EncoderInterface
 {
     /**
      * Encode a message to a common format understandable by adapters. The encoded array should only

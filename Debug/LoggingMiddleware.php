@@ -11,13 +11,13 @@
 
 namespace Symfony\Component\Message\Debug;
 
-use Symfony\Component\Message\MessageBusMiddlewareInterface;
+use Symfony\Component\Message\MiddlewareInterface;
 use Psr\Log\LoggerInterface;
 
 /**
  * @author Samuel Roze <samuel.roze@gmail.com>
  */
-class LoggingMiddleware implements MessageBusMiddlewareInterface
+class LoggingMiddleware implements MiddlewareInterface
 {
     /**
      * @var LoggerInterface

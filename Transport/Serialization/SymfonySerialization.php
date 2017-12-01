@@ -9,14 +9,14 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Component\Message\Transport;
+namespace Symfony\Component\Message\Transport\Serialization;
 
 use Symfony\Component\Serializer\SerializerInterface;
 
 /**
  * @author Samuel Roze <samuel.roze@gmail.com>
  */
-class SerializeMessageWithTypeInHeaders implements MessageDecoderInterface, MessageEncoderInterface
+class SymfonySerialization implements DecoderInterface, EncoderInterface
 {
     /**
      * @var SerializerInterface

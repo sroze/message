@@ -14,7 +14,13 @@ namespace Symfony\Component\Message;
 /**
  * @author Samuel Roze <samuel.roze@gmail.com>
  */
-interface MessageConsumerInterface
+interface MiddlewareInterface
 {
-    public function consume(): \Generator;
+    /**
+     * @param object   $message
+     * @param callable $next
+     *
+     * @return mixed
+     */
+    public function handle($message, callable $next);
 }

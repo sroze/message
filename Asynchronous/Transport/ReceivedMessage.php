@@ -9,15 +9,17 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Component\Message\Asynchronous;
+namespace Symfony\Component\Message\Asynchronous\Transport;
 
 /**
- * Wraps a consumed message. This is mainly used by the `SendMessageToProducersMiddleware` middleware to identify
- * a message should not be re-produced if it was just consumed.
+ * Wraps a received message. This is mainly used by the `SendMessageMiddleware` middleware to identify
+ * a message should not be sent if it was just received.
+ *
+ * @see \Symfony\Component\Message\Asynchronous\Middleware\SendMessageMiddleware
  *
  * @author Samuel Roze <samuel.roze@gmail.com>
  */
-final class ConsumedMessage
+final class ReceivedMessage
 {
     private $message;
 

@@ -11,20 +11,20 @@
 
 namespace Symfony\Component\Message\Middleware;
 
-use Symfony\Component\Message\MessageBusMiddlewareInterface;
-use Symfony\Component\Message\MessageHandlerResolverInterface;
+use Symfony\Component\Message\MiddlewareInterface;
+use Symfony\Component\Message\HandlerLocatorInterface;
 
 /**
  * @author Samuel Roze <samuel.roze@gmail.com>
  */
-class CallMessageHandlerMiddleware implements MessageBusMiddlewareInterface
+class HandleMessageMiddleware implements MiddlewareInterface
 {
     /**
-     * @var MessageHandlerResolverInterface
+     * @var HandlerLocatorInterface
      */
     private $messageHandlerResolver;
 
-    public function __construct(MessageHandlerResolverInterface $messageHandlerResolver)
+    public function __construct(HandlerLocatorInterface $messageHandlerResolver)
     {
         $this->messageHandlerResolver = $messageHandlerResolver;
     }
