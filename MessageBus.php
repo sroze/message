@@ -35,7 +35,7 @@ class MessageBus implements MessageBusInterface
      */
     public function dispatch($message)
     {
-        call_user_func($this->callableForNextMiddleware(0), $message);
+        return call_user_func($this->callableForNextMiddleware(0), $message);
     }
 
     private function callableForNextMiddleware($index): callable

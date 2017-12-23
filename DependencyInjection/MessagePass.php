@@ -59,12 +59,29 @@ class MessagePass implements CompilerPassInterface
 
         foreach ($container->findTaggedServiceIds($this->handlerTag, true) as $serviceId => $tags) {
             foreach ($tags as $tag) {
-                if (!isset($tag['handles'])) {
-                    throw new RuntimeException(sprintf('Tag "%s" on service "%s" should have an `handles` attribute', $this->handlerTag, $serviceId));
+                $reflection = new \ReflectionClass($container->getDefinition($serviceId)->getClass());
+
+                try {
+                    $method = $reflection->getMethod('__invoke');
+                } catch (\ReflectionException $e) {
+                    throw new RuntimeException(sprintf('Service "%s" should have an `__invoke` function', $serviceId));
+                }
+
+                $parameters = $method->getParameters();
+                if (count($parameters) !== 1) {
+                    throw new RuntimeException(sprintf('`__invoke` function of service "%s" must have exactly one parameter', $serviceId));
+                }
+
+                $parameter = $parameters[0];
+                if (null === $parameter->getClass()) {
+                    throw new RuntimeException(sprintf('The parameter of `__invoke` function of service "%s" must type hint the Message class it handles', $serviceId));
+                }
+                if (!class_exists($handles = $parameter->getClass()->getName())) {
+                    throw new RuntimeException(sprintf('The message class "%s" declared in `__invoke` function of service "%s" does not exist', $handles, $serviceId));
                 }
 
                 $priority = isset($tag['priority']) ? $tag['priority'] : 0;
-                $handlersByMessage[$tag['handles']][$priority][] = new Reference($serviceId);
+                $handlersByMessage[$handles][$priority][] = new Reference($serviceId);
             }
         }
 

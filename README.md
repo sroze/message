@@ -72,7 +72,7 @@ class MyMessageHandler
 
 ```xml
 <service id="App\Handler\MyMessageHandler">
-    <tag name="message_handler" handles="App\Message\MyMessage" />
+    <tag name="message_handler" />
 </service>
 ```
 
