@@ -68,7 +68,7 @@ class MessagePass implements CompilerPassInterface
                 }
 
                 $parameters = $method->getParameters();
-                if (count($parameters) !== 1) {
+                if (1 !== count($parameters)) {
                     throw new RuntimeException(sprintf('`__invoke` function of service "%s" must have exactly one parameter', $serviceId));
                 }
 
