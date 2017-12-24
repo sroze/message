@@ -42,6 +42,10 @@ class MessagePass implements CompilerPassInterface
      */
     public function process(ContainerBuilder $container)
     {
+        if (!$container->hasDefinition($this->messageBusService)) {
+            return;
+        }
+
         if (!$middlewares = $this->findAndSortTaggedServices($this->middlewareTag, $container)) {
             throw new RuntimeException(sprintf('You must tag at least one service as "%s" to use the "%s" service.', $this->middlewareTag, $this->messageBusService));
         }
