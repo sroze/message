@@ -23,9 +23,15 @@ class SymfonySerialization implements DecoderInterface, EncoderInterface
      */
     private $serializer;
 
-    public function __construct(SerializerInterface $serializer)
+    /**
+     * @var string
+     */
+    private $format;
+
+    public function __construct(SerializerInterface $serializer, string $format = 'json')
     {
         $this->serializer = $serializer;
+        $this->format = $format;
     }
 
     /**
@@ -39,7 +45,7 @@ class SymfonySerialization implements DecoderInterface, EncoderInterface
             throw new \InvalidArgumentException('Encoded message do not have a `type` header');
         }
 
-        return $this->serializer->deserialize($encodedMessage['body'], $encodedMessage['headers']['type'], 'json');
+        return $this->serializer->deserialize($encodedMessage['body'], $encodedMessage['headers']['type'], $this->format);
     }
 
     /**
@@ -48,7 +54,7 @@ class SymfonySerialization implements DecoderInterface, EncoderInterface
     public function encode($message): array
     {
         return array(
-            'body' => $this->serializer->serialize($message, 'json'),
+            'body' => $this->serializer->serialize($message, $this->format),
             'headers' => array(
                 'type' => get_class($message),
             ),

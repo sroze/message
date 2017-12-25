@@ -76,6 +76,8 @@ class MyMessageHandler
 </service>
 ```
 
+**Note:** If the message cannot be guessed from the handler's type-hint, use the `handles` attribute on the tag.
+
 ### Asynchronous messages
 
 Using the Message Component is useful to decouple your application but it also very useful when you want to do some
@@ -126,7 +128,7 @@ framework:
 #### Same bus received and sender
 
 To allow us to receive and send messages on the same bus and prevent a loop, the message bus is equipped with the
-`WrappedIntoReceivedMessage` received. It will wraps the received messages into `ReceivedMessage` objects and the 
+`WrapIntoReceivedMessage` received. It will wrap the received messages into `ReceivedMessage` objects and the 
 `SendMessageMiddleware` middleware will know it should not send these messages.
 
 ### Your own sender

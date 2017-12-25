@@ -16,5 +16,5 @@ namespace Symfony\Component\Message\Transport;
  */
 interface ReceiverInterface
 {
-    public function receive(): \Generator;
+    public function receive(): \iterable;
 }

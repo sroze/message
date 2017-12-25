@@ -20,9 +20,6 @@ use Symfony\Component\Message\MiddlewareInterface;
  */
 class SendMessageMiddleware implements MiddlewareInterface
 {
-    /**
-     * @var SenderLocatorInterface
-     */
     private $senderLocator;
 
     public function __construct(SenderLocatorInterface $senderLocator)

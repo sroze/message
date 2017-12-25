@@ -24,17 +24,17 @@ class MessagePass implements CompilerPassInterface
 {
     use PriorityTaggedServiceTrait;
 
-    private $messageHandlerResolverService;
-    private $handlerTag;
     private $messageBusService;
     private $middlewareTag;
+    private $messageHandlerResolverService;
+    private $handlerTag;
 
     public function __construct(string $messageBusService = 'message_bus', string $middlewareTag = 'message_middleware', string $messageHandlerResolverService = 'message.handler_resolver', string $handlerTag = 'message_handler')
     {
-        $this->messageHandlerResolverService = $messageHandlerResolverService;
-        $this->handlerTag = $handlerTag;
         $this->messageBusService = $messageBusService;
         $this->middlewareTag = $middlewareTag;
+        $this->messageHandlerResolverService = $messageHandlerResolverService;
+        $this->handlerTag = $handlerTag;
     }
 
     /**
@@ -63,24 +63,9 @@ class MessagePass implements CompilerPassInterface
 
         foreach ($container->findTaggedServiceIds($this->handlerTag, true) as $serviceId => $tags) {
             foreach ($tags as $tag) {
-                $reflection = new \ReflectionClass($container->getDefinition($serviceId)->getClass());
+                $handles = isset($tag['handles']) ? $tag['handles'] : $this->guessHandledClass($container, $serviceId);
 
-                try {
-                    $method = $reflection->getMethod('__invoke');
-                } catch (\ReflectionException $e) {
-                    throw new RuntimeException(sprintf('Service "%s" should have an `__invoke` function', $serviceId));
-                }
-
-                $parameters = $method->getParameters();
-                if (1 !== count($parameters)) {
-                    throw new RuntimeException(sprintf('`__invoke` function of service "%s" must have exactly one parameter', $serviceId));
-                }
-
-                $parameter = $parameters[0];
-                if (null === $parameter->getClass()) {
-                    throw new RuntimeException(sprintf('The parameter of `__invoke` function of service "%s" must type hint the Message class it handles', $serviceId));
-                }
-                if (!class_exists($handles = $parameter->getClass()->getName())) {
+                if (!class_exists($handles)) {
                     throw new RuntimeException(sprintf('The message class "%s" declared in `__invoke` function of service "%s" does not exist', $handles, $serviceId));
                 }
 
@@ -95,5 +80,27 @@ class MessagePass implements CompilerPassInterface
         }
 
         return $handlersByMessage;
+    }
+
+    private function guessHandledClass(ContainerBuilder $container, string $serviceId): string
+    {
+        $reflection = new \ReflectionClass($container->getDefinition($serviceId)->getClass());
+        try {
+            $method = $reflection->getMethod('__invoke');
+        } catch (\ReflectionException $e) {
+            throw new RuntimeException(sprintf('Service "%s" should have an `__invoke` function', $serviceId));
+        }
+
+        $parameters = $method->getParameters();
+        if (1 !== count($parameters)) {
+            throw new RuntimeException(sprintf('`__invoke` function of service "%s" must have exactly one parameter', $serviceId));
+        }
+
+        $parameter = $parameters[0];
+        if (null === $parameter->getClass()) {
+            throw new RuntimeException(sprintf('The parameter of `__invoke` function of service "%s" must type hint the Message class it handles', $serviceId));
+        }
+
+        return $parameter->getClass()->getName();
     }
 }
