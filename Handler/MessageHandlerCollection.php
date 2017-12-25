@@ -37,8 +37,8 @@ class MessageHandlerCollection
 
     public function __invoke($message)
     {
-        foreach ($this->handlers as $handler) {
-            yield $handler($message);
-        }
+        return array_map(function ($handler) use ($message) {
+            return $handler($message);
+        }, $this->handlers);
     }
 }
