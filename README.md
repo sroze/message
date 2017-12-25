@@ -91,6 +91,9 @@ following adapters:
 
 - [PHP Enqueue bridge](https://github.com/sroze/enqueue-bridge) to use one of their 10+ compatible queues such as 
   RabbitMq, Amazon SQS or Google Pub/Sub.
+- [Swarrot adapter](https://github.com/sroze/swarrot-bridge) to use Swarrot, a library specialised in consuming
+  messages from AMQP brokers such as RabbitMq.
+- [HTTP adapter](https://github.com/sroze/message-http-adapter) to receive and send messages through HTTP APIs.
 
 #### Routing
 
@@ -176,11 +179,15 @@ class ImportantActionToEmailSender implements SenderInterface
 
 2. Register your sender service
 
-```xml
-<service id="App\MessageSender\ImportantActionToEmailSender">
-    <argument type="service" id="mailer" />
-    <argument>%to_email%</argument>
-</service>
+```yaml
+services:
+    App\MessageSender\ImportantActionToEmailSender:
+        arguments:
+            - "@mailer"
+            - "%to_email%"
+    
+        tags:
+            - message.sender
 ```
 
 3. Route your important message to the sender
@@ -195,7 +202,7 @@ framework:
 **Note:** this example shows you how you can at the same time send your message and directly handle it using a `null`
 (`~`) sender.
 
-### Your own received
+### Your own receiver
 
 A consumer is responsible of receiving messages from a source and dispatching them to the application. 
 
@@ -236,13 +243,17 @@ class NewOrdersFromCsvFile implements ReceiverInterface
 }
 ```
 
-2. Register your consumer service
+2. Register your receiver service
 
-```xml
-<service class="App\MessageReceived\NewOrdersFromCsvFile">
-    <argument type="service" id="serializer" />
-    <argument>%new_orders_csv_file_path%</argument>
-</service>
+```yaml
+services:
+    App\MessageReceiver\NewOrdersFromCsvFile:
+        arguments:
+            - "@serializer"
+            - "%new_orders_csv_file_path%"
+    
+        tags:
+            - message.receiver
 ```
 
 3. Use your consumer
